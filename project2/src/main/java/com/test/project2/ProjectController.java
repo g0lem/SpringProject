@@ -11,6 +11,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 @RestController
 public class ProjectController {
@@ -29,30 +32,51 @@ public class ProjectController {
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
-    @RequestMapping(value = "/get")
-    public ResponseEntity<State> get() throws SolrServerException, IOException{
+    @RequestMapping(value = "/get/{start}")
+    public ResponseEntity<State> get(@PathVariable("start") int start) throws SolrServerException, IOException{
 
-       // SolrDocumentList list = this.db.getState();
+        // SolrDocumentList list = this.db.getState();
         this.data = new State();
-        this.data.setList(this.db.getState());
+        this.data.setList(this.db.getState(start, 4, "*:*"));
+        return new ResponseEntity<State>(this.data, HttpStatus.OK);
+    }
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/search/{start}/{value}")
+    public ResponseEntity<State> search(@PathVariable("start") int start, @PathVariable("value") String value) throws SolrServerException, IOException{
+
+        // SolrDocumentList list = this.db.getState();
+        this.data = new State();
+        this.data.setList(this.db.getState(start, 4, "value:*"+value+"*"));
         return new ResponseEntity<State>(this.data, HttpStatus.OK);
     }
 
-    class req {
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/hello")
+    public ResponseEntity<String> hello() throws SolrServerException, IOException{
+
+
+        return new ResponseEntity<String>("hello", HttpStatus.OK);
+    }
+
+    class Req {
         int num;
         int getNum(){
             return this.num;
         }
 
+        Req(){
+            this.num = 0;
+        }
+
 
     }
     @CrossOrigin(origins = "http://localhost:3000")
-    @RequestMapping(value = "/change", method = RequestMethod.POST)
-    public @ResponseBody boolean change(@RequestBody final req request) throws IOException{
+    @RequestMapping(value = "/change", method = RequestMethod.PUT)
+    public @ResponseBody boolean change(@RequestBody final int request){
 
         System.out.print(this.data.getList().get(0));
 
-        this.data.getList().get(request.getNum()).setChecked(!this.data.getList().get(request.getNum()).getChecked());
+        this.data.getList().get(request).setChecked(!this.data.getList().get(request).getChecked());
 
         return true;
     }
@@ -79,13 +103,28 @@ public class ProjectController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value="/post", method = RequestMethod.POST)
-    public @ResponseBody boolean post(@RequestBody final State request) throws IOException, SolrServerException{
+    public @ResponseBody List<ListItem> post(@RequestBody final ListItem request) throws IOException, SolrServerException{
 
 
-        this.data = request;
+        this.data.getList().add(request);
 
-        this.db.addState(this.data);
+        this.db.addItem(request);
 
-        return true;
+
+        return this.db.getState(0,4,"*:*");
     }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value="/update/{id}", method = RequestMethod.PUT)
+    public @ResponseBody List<ListItem> update(@PathVariable("id") String request) throws IOException, SolrServerException{
+
+        Stream<ListItem> listItemStream = this.data.getList().stream().filter(listItem -> listItem.id.equals(request.toString()));
+        listItemStream.findFirst().ifPresent(listItem -> listItem.setChecked(!listItem.getChecked()));
+
+        this.db.modifyState("id:"+request);
+
+
+        return this.db.getState(0,4,"*:*");
+    }
+
 }

@@ -6,7 +6,9 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-scripts": "1.0.14",
-    "axios": "latest"
+    "axios": "latest",
+    "jQuery": "latest",
+    "material-ui": "latest"
   },
   "scripts": {
     "start": "react-scripts start",

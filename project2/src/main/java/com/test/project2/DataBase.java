@@ -29,7 +29,7 @@ public class DataBase {
     public void addState(State state) throws SolrServerException, IOException{
 
 
-       solr.deleteByQuery("*:*");
+       this.solr.deleteByQuery("*:*");
 
         for(int i=0; i<state.getList().size(); i++){
             ListItem item = state.getList().get(i);
@@ -46,12 +46,50 @@ public class DataBase {
     }
 
 
+    public void modifyState(String query1) throws SolrServerException, IOException{
 
-    public List<ListItem> getState() throws IOException, SolrServerException{
+
+        //find
+        SolrQuery query = new SolrQuery();
+        query.set("q", query1);
+        QueryResponse response = this.solr.query(query);
+
+        SolrDocumentList docList = response.getResults();
+
+        ListItem list_item = new ListItem();
+        list_item.id = (String) docList.get(0).getFieldValue("id");
+        list_item.checked = (Boolean) docList.get(0).getFieldValue("checked");
+        list_item.value = (String) docList.get(0).getFieldValue("value");
+
+
+        //replace
+        SolrInputDocument document = new SolrInputDocument();
+        document.addField("id", list_item.getId());
+        document.addField("value", list_item.getValue());
+        document.addField("checked", !list_item.getChecked());
+        this.solr.add(document);
+        this.solr.commit();
+
+    }
+
+    public void addItem(ListItem item) throws SolrServerException, IOException{
+
+
+            SolrInputDocument document = new SolrInputDocument();
+            document.addField("value", item.getValue());
+            document.addField("checked", item.getChecked());
+            this.solr.add(document);
+            this.solr.commit();
+
+    }
+
+    public List<ListItem> getState(int start, int offset, String query1) throws IOException, SolrServerException{   //int start, int offset
 
 
         SolrQuery query = new SolrQuery();
-        query.set("q", "*:*");
+        query.setStart(start * offset);
+        query.setRows(offset);
+        query.set("q", query1);
         QueryResponse response = this.solr.query(query);
         SolrDocumentList docList = response.getResults();
 
@@ -59,8 +97,10 @@ public class DataBase {
 
         for(int i=0;i<docList.size();i++){
             ListItem list_item = new ListItem();
+
             list_item.checked = (Boolean) (docList.get(i).getFieldValue("checked"));
             list_item.value   = (String) (docList.get(i).getFieldValue("value"));
+            list_item.id = (String) (docList.get(i).getFieldValue("id"));
             res.add(list_item);
         }
 
@@ -68,6 +108,8 @@ public class DataBase {
 
         return res;
     }
+
+
 
 
 
