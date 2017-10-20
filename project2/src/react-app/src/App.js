@@ -62,7 +62,11 @@ class App extends Component {
 
   toggleComplete(todoIndex) {
     console.log(this.state);
-    this.setState(prevState => prevState = { value: prevState.value, list: prevState.list.map((todo, idx) => idx != todoIndex? todo : {value: todo.value, checked: this.checkValue(todo.checked)}) })
+
+    this.setState(prevState => prevState = { value: prevState.value, list: prevState.list.map((todo, idx) => idx != todoIndex? todo : {value: todo.value, checked: this.checkValue(todo.checked)}) },
+      function(){
+        this.handlePost();
+      });
   }
 
   getMoviesFromApiAsync() {
