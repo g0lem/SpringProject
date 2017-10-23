@@ -22,15 +22,17 @@ import Stomp from '@stomp/stompjs'
 // socket.emit('hello', 'world');
 
 
-    var socket = new SockJS('http://localhost:8080/chat');
-    var stompClient = Stomp.over(socket);
-    stompClient.connect({}, function (frame) {
+    // var socket = new SockJS('http://localhost:8080/chat');
+    // var stompClient = Stomp.over(socket);
+    // stompClient.connect({}, function (frame) {
        
-        console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/greetings', function (greeting) {
-            //showGreeting(JSON.parse(greeting.body).content);
-        });
-    });
+    //     console.log('Connected: ' + frame);
+    //     stompClient.subscribe('/topic/greetings', function (greeting) {
+    //         //showGreeting(JSON.parse(greeting.body).content);
+    //         alert(greeting.body);
+
+    //     });
+    // });
 
 
 class App extends Component {
@@ -41,6 +43,7 @@ class App extends Component {
       value: 'Add something to do',
       list: []
     };
+
 
 
     this.page = 0;
@@ -65,6 +68,26 @@ class App extends Component {
     this.updateData(this);
     //this.getMoviesFromApiAsync = this.getMoviesFromApiAsync.bind(this);
 
+
+    this.socket = new SockJS('http://localhost:8080/chat');
+    this.stompClient = Stomp.over(this.socket);
+
+    var stomp = this.stompClient;
+    var context = this;
+
+    this.stompClient.connect({}, function (frame) {
+       
+        console.log('Connected: ' + frame);
+        stomp.subscribe('/topic/greetings', function (greeting) {
+            //showGreeting(JSON.parse(greeting.body).content);
+
+            context.updateData(context);
+
+        });
+
+
+    });
+
   }
 
   updateData(context){
@@ -75,6 +98,7 @@ class App extends Component {
           console.log(response.data.list);
         }
     })
+      
 
   }
 
@@ -103,7 +127,7 @@ class App extends Component {
 
   sendMessage() {
 
-      stompClient.send("/app/hello", {}, "da");
+      this.stompClient.send("/app/hello", {}, "da");
 
   }
 

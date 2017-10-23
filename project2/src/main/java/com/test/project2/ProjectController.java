@@ -2,8 +2,10 @@ package com.test.project2;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocumentList;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -23,6 +25,9 @@ public class ProjectController {
     State data;
     DataBase db;
     SocketClass socket;
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
+
 
     public ProjectController() throws IOException{
         this.db = new DataBase();
@@ -42,6 +47,18 @@ public class ProjectController {
         this.data = new State();
         this.data.setList(this.db.getState(start, 4, "*:*"));
         return new ResponseEntity<State>(this.data, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/something/getChecked")
+    public List<ListItem> getChecked() throws SolrServerException, IOException{
+
+        return this.db.getState(0, 4, "checked:true");
+    }
+
+    @RequestMapping(value = "/something/getUnchecked")
+    public List<ListItem> getUnchecked() throws SolrServerException, IOException{
+
+        return this.db.getState(0, 4, "checked:false");
     }
 
 
@@ -117,6 +134,8 @@ public class ProjectController {
 
         this.db.addItem(request);
 
+        this.simpMessagingTemplate.convertAndSend("/topic/greetings", request);
+
 
         return this.db.getState(0,4,"*:*");
     }
@@ -130,6 +149,8 @@ public class ProjectController {
         listItemStream.findFirst().ifPresent(listItem -> listItem.setChecked(!listItem.getChecked()));
 
         this.db.modifyState("id:"+request);
+
+        this.simpMessagingTemplate.convertAndSend("/topic/greetings", request);
 
 
         return this.db.getState(0,4,"*:*");
