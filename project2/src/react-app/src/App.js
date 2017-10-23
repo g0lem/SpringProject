@@ -6,6 +6,33 @@ import TextField from 'material-ui/TextField';
 import AutoComplete from 'material-ui/TextField';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
+
+import SockJS from 'sockjs-client';
+import Stomp from '@stomp/stompjs'
+ 
+// var socket = io('http://localhost', {
+//  port: 80
+// });
+
+
+// socket.on('connect', () => {
+//   console.log(socket.id); // 'G5p5...'
+// })
+
+// socket.emit('hello', 'world');
+
+
+    var socket = new SockJS('http://localhost:8080/chat');
+    var stompClient = Stomp.over(socket);
+    stompClient.connect({}, function (frame) {
+       
+        console.log('Connected: ' + frame);
+        stompClient.subscribe('/topic/greetings', function (greeting) {
+            //showGreeting(JSON.parse(greeting.body).content);
+        });
+    });
+
+
 class App extends Component {
 
   constructor(props) {
@@ -33,6 +60,7 @@ class App extends Component {
     this.goBackward = this.goBackward.bind(this);
 
     this.getButtonColor = this.getButtonColor.bind(this);
+    this.sendMessage = this.sendMessage.bind(this);
 
     this.updateData(this);
     //this.getMoviesFromApiAsync = this.getMoviesFromApiAsync.bind(this);
@@ -72,6 +100,13 @@ class App extends Component {
   checkValue(character){
     return !character;
   }
+
+  sendMessage() {
+
+      stompClient.send("/app/hello", {}, "da");
+
+  }
+
 
 
   toggleComplete(todoIndex) {
@@ -178,6 +213,7 @@ class App extends Component {
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous"/>
 
 
+          <input type="submit" value="SEND" onClick={this.sendMessage} class="btn btn-warning"/>
         <div className="App" class="form-group">
           <label>
             Add to the list:

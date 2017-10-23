@@ -8,7 +8,9 @@
     "react-scripts": "1.0.14",
     "axios": "latest",
     "jQuery": "latest",
-    "material-ui": "latest"
+    "material-ui": "latest",
+    "sockjs-client": "1.1.4",
+    "@stomp/stompjs ": "latest"
   },
   "scripts": {
     "start": "react-scripts start",

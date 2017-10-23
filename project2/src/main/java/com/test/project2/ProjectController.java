@@ -15,14 +15,18 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+
+@CrossOrigin
 @RestController
 public class ProjectController {
 
     State data;
     DataBase db;
+    SocketClass socket;
 
-    public ProjectController(){
+    public ProjectController() throws IOException{
         this.db = new DataBase();
+        this.socket = new SocketClass();
     }
 
 
@@ -31,7 +35,6 @@ public class ProjectController {
         return new String(encoded, encoding);
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(value = "/get/{start}")
     public ResponseEntity<State> get(@PathVariable("start") int start) throws SolrServerException, IOException{
 
@@ -40,7 +43,8 @@ public class ProjectController {
         this.data.setList(this.db.getState(start, 4, "*:*"));
         return new ResponseEntity<State>(this.data, HttpStatus.OK);
     }
-    @CrossOrigin(origins = "http://localhost:3000")
+
+
     @RequestMapping(value = "/search/{start}/{value}")
     public ResponseEntity<State> search(@PathVariable("start") int start, @PathVariable("value") String value) throws SolrServerException, IOException{
 
@@ -50,7 +54,7 @@ public class ProjectController {
         return new ResponseEntity<State>(this.data, HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+
     @RequestMapping(value = "/hello")
     public ResponseEntity<String> hello() throws SolrServerException, IOException{
 
@@ -70,7 +74,8 @@ public class ProjectController {
 
 
     }
-    @CrossOrigin(origins = "http://localhost:3000")
+
+
     @RequestMapping(value = "/change", method = RequestMethod.PUT)
     public @ResponseBody boolean change(@RequestBody final int request){
 
@@ -81,7 +86,8 @@ public class ProjectController {
         return true;
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+
+
     @RequestMapping(value="/", method = RequestMethod.GET)
     public byte[] something() throws IOException{
 
@@ -101,7 +107,8 @@ public class ProjectController {
         return data;
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+
+
     @RequestMapping(value="/post", method = RequestMethod.POST)
     public @ResponseBody List<ListItem> post(@RequestBody final ListItem request) throws IOException, SolrServerException{
 
@@ -114,7 +121,8 @@ public class ProjectController {
         return this.db.getState(0,4,"*:*");
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+
+
     @RequestMapping(value="/update/{id}", method = RequestMethod.PUT)
     public @ResponseBody List<ListItem> update(@PathVariable("id") String request) throws IOException, SolrServerException{
 
