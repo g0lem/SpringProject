@@ -41,7 +41,9 @@ class App extends Component {
     super(props);
     this.state = {
       value: 'Add something to do',
-      list: []
+      list: [],
+      checked: [{}],
+      unchecked: [{}]
     };
 
 
@@ -65,9 +67,9 @@ class App extends Component {
     this.getButtonColor = this.getButtonColor.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
 
-    this.updateData(this);
     //this.getMoviesFromApiAsync = this.getMoviesFromApiAsync.bind(this);
 
+    this.updateData(this);
 
     this.socket = new SockJS('http://localhost:8080/chat');
     this.stompClient = Stomp.over(this.socket);
@@ -97,9 +99,23 @@ class App extends Component {
           context.setState({list: response.data.list});
           console.log(response.data.list);
         }
-    })
-      
+    });
 
+    axios.get('http://localhost:8080/something/getChecked')
+      .then(function (response) {
+        if(response){
+          context.setState({checked: response.data});
+          console.log(response.data.list);
+        }
+    });
+
+    axios.get('http://localhost:8080/something/getUnchecked')
+      .then(function (response) {
+        if(response){
+          context.setState({unchecked: response.data});
+          console.log(response.data.list);
+        }
+    });
   }
 
   handleChange(event) {
@@ -256,6 +272,8 @@ class App extends Component {
               <div> <a class="btn btn-light"  onClick={this.goBackward}> {"<<"} </a> {this.page+1} <a class="btn btn-light" onClick={this.goForward}> >> </a>
               </div>
             </div>
+            <div>{this.state.checked.map((todo,i) => <div class={this.getButtonColor(todo.checked)}> {todo.value} </div>)}</div>
+            <div>{this.state.unchecked.map((todo,i) => <div class={this.getButtonColor(todo.checked)}> {todo.value} </div>)}</div>
         </MuiThemeProvider>
 
 
