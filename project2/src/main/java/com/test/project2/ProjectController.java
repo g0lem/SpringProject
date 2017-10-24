@@ -41,24 +41,29 @@ public class ProjectController {
     }
 
     @RequestMapping(value = "/get/{start}")
-    public ResponseEntity<State> get(@PathVariable("start") int start) throws SolrServerException, IOException{
+    public List<ListItem> get(@PathVariable("start") int start, @RequestBody String query) throws SolrServerException, IOException{
+
+
+        String str = java.net.URLDecoder.decode(query, "UTF-8");
+        str = str.replace(str.substring(str.length()-1), "");
 
         // SolrDocumentList list = this.db.getState();
-        this.data = new State();
-        this.data.setList(this.db.getState(start, 4, "*:*"));
-        return new ResponseEntity<State>(this.data, HttpStatus.OK);
+        //this.data = new State();
+
+        //this.data.setList(this.db.getState(start, 4, query));
+        return this.db.getState(start, 4, str);
     }
 
     @RequestMapping(value = "/something/getChecked")
     public List<ListItem> getChecked() throws SolrServerException, IOException{
 
-        return this.db.getState(0, 4, "checked:true");
+        return this.db.getState(0, 9999, "checked:true");
     }
 
     @RequestMapping(value = "/something/getUnchecked")
     public List<ListItem> getUnchecked() throws SolrServerException, IOException{
 
-        return this.db.getState(0, 4, "checked:false");
+        return this.db.getState(0, 9999, "checked:false");
     }
 
 

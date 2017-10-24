@@ -3,9 +3,9 @@ import logo from './logo.svg';
 import './App.css';
 import axios from 'axios';
 import TextField from 'material-ui/TextField';
-import AutoComplete from 'material-ui/TextField';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-
+import DropDownMenu from 'material-ui/DropDownMenu';
+import MenuItem from 'material-ui/MenuItem';
 
 import SockJS from 'sockjs-client';
 import Stomp from '@stomp/stompjs'
@@ -46,9 +46,11 @@ class App extends Component {
       unchecked: [{}]
     };
 
-
+    this.search_type = 1;
 
     this.page = 0;
+
+    this.search_query = "*";
 
 
 
@@ -63,6 +65,11 @@ class App extends Component {
     this.updateData = this.updateData.bind(this);
     this.goForward = this.goForward.bind(this);
     this.goBackward = this.goBackward.bind(this);
+
+    this.searchChecked = this.searchChecked.bind(this);
+    this.searchUnchecked = this.searchUnchecked.bind(this);
+    this.handleDropDown = this.handleDropDown.bind(this);
+
 
     this.getButtonColor = this.getButtonColor.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
@@ -93,31 +100,54 @@ class App extends Component {
   }
 
   updateData(context){
-    axios.get('http://localhost:8080/get/'+context.page)
+
+
+
+    axios.post('http://localhost:8080/get/'+context.page, "value:"+context.search_query+"*")
       .then(function (response) {
-        if(response.data.list){
-          context.setState({list: response.data.list});
+        if(response.data){
+          context.setState({list: response.data});
+          console.log(response.data);
+        }
+    });
+
+  }
+  searchChecked(context){
+
+    axios.post('http://localhost:8080/get/'+context.page, "checked:true AND value:"+context.search_query+"*")
+      .then(function (response) {
+        if(response){
+          context.setState({list: response.data});
           console.log(response.data.list);
         }
     });
 
-    axios.get('http://localhost:8080/something/getChecked')
-      .then(function (response) {
-        if(response){
-          context.setState({checked: response.data});
-          console.log(response.data.list);
-        }
-    });
+  }
 
-    axios.get('http://localhost:8080/something/getUnchecked')
+  searchUnchecked(context){
+
+    axios.post('http://localhost:8080/get/'+context.page, "checked:false AND value:"+context.search_query+"*")
       .then(function (response) {
         if(response){
-          context.setState({unchecked: response.data});
+          context.setState({list: response.data});
           console.log(response.data.list);
         }
     });
   }
+  handleDropDown(num){
 
+      this.search_type = num;
+      console.log(num);
+      if(num==1){
+        this.updateData(this);
+      }
+      if(num==2){
+        this.searchChecked(this);
+      }
+      if(num==3){
+        this.searchUnchecked(this);
+      }
+  }
   handleChange(event) {
     this.setState({value: event.target.value});
 
@@ -160,21 +190,29 @@ class App extends Component {
   }
 
   handleSearch(event){
-    var context = this;
-    if(event.target.value!=""){
-      axios.get('http://localhost:8080/search/0/'+event.target.value)
-        .then(function (response) {
-          if(response.data.list){
-            context.setState({list: response.data.list});
-            console.log(context.state);
-            event.preventDefault();
-          }
-      })
-    }
-    else{
-      this.updateData(context);
-      event.preventDefault();
-    }
+
+    if(event.target.value)
+      this.search_query = event.target.value;
+    else
+      this.search_query = "*";
+
+
+    this.updateData(this);
+      // var context = this;
+      // if(event.target.value!=""){
+      //   axios.get('http://localhost:8080/search/0/'+event.target.value)
+      //     .then(function (response) {
+      //       if(response.data.list){
+      //         context.setState({list: response.data.list});
+      //         console.log(context.state);
+      //         event.preventDefault();
+      //       }
+      //   })
+      // }
+      // else{
+      //   
+      //   event.preventDefault();
+      // }
   }
 
   handlePost(obj_to_push){
@@ -221,7 +259,7 @@ class App extends Component {
   goForward(){
 
     this.page++;
-    this.updateData(this);
+    this.handleDropDown(this.search_type);
   
   }
 
@@ -229,7 +267,7 @@ class App extends Component {
 
     if(this.page>0)
     this.page--;
-    this.updateData(this);
+    this.handleDropDown(this.search_type);
   
   }
 
@@ -251,7 +289,7 @@ class App extends Component {
     return (
       <div align="center">
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous"/>
-
+<MuiThemeProvider>
 
           <input type="submit" value="SEND" onClick={this.sendMessage} class="btn btn-warning"/>
         <div className="App" class="form-group">
@@ -260,9 +298,9 @@ class App extends Component {
             <input placeholder={this.state.value} onChange={this.handleChange}  class="form-control"/>
           </label>
           <input type="submit" value="Submit" onClick={this.handleSubmit} class="btn btn-warning"/>
+          <DropDownMenu value={"All"} onChange={(event, index, value)=> this.handleDropDown(value)}><MenuItem value={1}>All</MenuItem><MenuItem value={2}>Checked</MenuItem><MenuItem value={3}>Unchecked</MenuItem></DropDownMenu>
         </div>
 
-        <MuiThemeProvider>
            <TextField placeholder="Search..." onChange={this.handleSearch}  class="form-control"/>
 
             <div class="container container-table form-group">
@@ -272,9 +310,8 @@ class App extends Component {
               <div> <a class="btn btn-light"  onClick={this.goBackward}> {"<<"} </a> {this.page+1} <a class="btn btn-light" onClick={this.goForward}> >> </a>
               </div>
             </div>
-            <div>{this.state.checked.map((todo,i) => <div class={this.getButtonColor(todo.checked)}> {todo.value} </div>)}</div>
-            <div>{this.state.unchecked.map((todo,i) => <div class={this.getButtonColor(todo.checked)}> {todo.value} </div>)}</div>
-        </MuiThemeProvider>
+
+</MuiThemeProvider>
 
 
       </div>
