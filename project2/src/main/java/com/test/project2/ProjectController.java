@@ -133,9 +133,7 @@ public class ProjectController {
 
     @RequestMapping(value="/post", method = RequestMethod.POST)
     public @ResponseBody List<ListItem> post(@RequestBody final ListItem request) throws IOException, SolrServerException{
-
-
-        this.data.getList().add(request);
+        
 
         this.db.addItem(request);
 
@@ -150,8 +148,9 @@ public class ProjectController {
     @RequestMapping(value="/update/{id}", method = RequestMethod.PUT)
     public @ResponseBody List<ListItem> update(@PathVariable("id") String request) throws IOException, SolrServerException{
 
-        Stream<ListItem> listItemStream = this.data.getList().stream().filter(listItem -> listItem.id.equals(request.toString()));
-        listItemStream.findFirst().ifPresent(listItem -> listItem.setChecked(!listItem.getChecked()));
+        System.out.print(request);
+//        Stream<ListItem> listItemStream = this.data.getList().stream().filter(listItem -> listItem.id.equals(request.toString()));
+//        listItemStream.findFirst().ifPresent(listItem -> listItem.setChecked(!listItem.getChecked()));
 
         this.db.modifyState("id:"+request);
 
