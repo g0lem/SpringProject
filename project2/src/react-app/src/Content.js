@@ -22,7 +22,7 @@ class Content extends Component {
         super(props);
         
         this.state = {
-          list: [{}]
+          list: []
         }
 
         this.page = 0;
@@ -104,12 +104,15 @@ class Content extends Component {
 
     handleSearch(event){
 
+        // this.search_query = event.target.value;
+        // this.handleDropDown(this.search_type);
+
         if(event.target.value)
           this.search_query = event.target.value;
         else
           this.search_query = "*";
 
-        this.updateData(this);
+        this.handleDropDown(this.search_type);
 
     }
 
